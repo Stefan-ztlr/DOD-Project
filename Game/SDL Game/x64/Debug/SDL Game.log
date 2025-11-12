@@ -1,2 +1,8 @@
 ﻿  main.cpp
+C:\Users\Stefan\Documents\ProiectIS\DOD-Project\Game\SDL Game\main.cpp(140,19): warning C4244: '=': conversion from 'Uint32' to 'float', possible loss of data
+  ObjectOriented.cpp
+C:\Users\Stefan\Documents\ProiectIS\DOD-Project\Game\SDL Game\ObjectOriented.cpp(17,31): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Stefan\Documents\ProiectIS\DOD-Project\Game\SDL Game\ObjectOriented.cpp(28,49): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\Stefan\Documents\ProiectIS\DOD-Project\Game\SDL Game\ObjectOriented.cpp(36,50): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+  Generating Code...
   SDL Game.vcxproj -> C:\Users\Stefan\Documents\ProiectIS\DOD-Project\Game\x64\Debug\SDL Game.exe

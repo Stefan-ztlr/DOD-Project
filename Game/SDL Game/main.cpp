@@ -1,71 +1,201 @@
-/* clear.c ... */
+#include <iostream>
+#include <ctime>
+#include <cmath> 
+#include <vector>
+#include <random>
+#include <chrono>
+#include <SDL.h>
+#include "imgui.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_sdlrenderer2.h"
 
-/*
- * This example code creates an SDL window and renderer, and then clears the
- * window to a different color every frame, so you'll effectively get a window
- * that's smoothly fading between colors.
- *
- * This code is public domain. Feel free to use it for any purpose!
- */
+#include "TextureManager.h"
+#include "ObjectOriented.h"
+#include "DataOriented.h"
+#include "SpatialHash.h"
 
-#define SDL_MAIN_USE_CALLBACKS 1  /* use the callbacks instead of main() */
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
- /* We will use this renderer to draw into this window every frame. */
-static SDL_Window* window = NULL;
-static SDL_Renderer* renderer = NULL;
+// --- Configuration ---
+const int SCREEN_WIDTH = 1280;
+const int SCREEN_HEIGHT = 720;
+const int MAX_OBJECTS = 100000;
+const int SPRITE_SIZE = 1;
+const int CELL_SIZE = SPRITE_SIZE * 2;
 
-/* This function runs once at startup. */
-SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
-{
-    SDL_SetAppMetadata("Example Renderer Clear", "1.0", "com.example.renderer-clear");
+const float OBJECT_SPEED = 200.0f; // Define a constant speed
 
-    if (!SDL_Init(SDL_INIT_VIDEO)) {
-        SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
-        return SDL_APP_FAILURE;
+int main(int argc, char* argv[]) {
+    //SDL Initialization
+    SDL_Init(SDL_INIT_VIDEO);
+    IMG_Init(IMG_INIT_PNG);
+
+    SDL_Window* window = SDL_CreateWindow("DOD Project", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+
+    //ImGui Initialization 
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
+    ImGui_ImplSDLRenderer2_Init(renderer);
+
+    SpatialHash spatialHash(SCREEN_WIDTH, SCREEN_HEIGHT, CELL_SIZE);
+
+    //Game Variables
+    bool useDataOriented = false;
+    int numObjects = 100;
+    std::vector<GameObject_OO> objects_OO;
+    GameData_DO gameData_DO;
+    SDL_Texture* spriteTexture = TextureManager::LoadTexture("sprite.png", renderer);
+
+    if (!spriteTexture) {
+        return 1;
     }
 
-    if (!SDL_CreateWindowAndRenderer("examples/renderer/clear", 640, 480, SDL_WINDOW_RESIZABLE, &window, &renderer)) {
-        SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
-        return SDL_APP_FAILURE;
+    auto respawnObjects = [&]() {
+        objects_OO.clear();
+
+        gameData_DO.physics.clear(); 
+        gameData_DO.textures.clear();
+
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> distribX(0, SCREEN_WIDTH - SPRITE_SIZE);
+        std::uniform_int_distribution<> distribY(0, SCREEN_HEIGHT - SPRITE_SIZE);
+
+        std::uniform_real_distribution<float> distribAngle(0.0f, 2.0f * static_cast<float>(M_PI));
+
+        for (int i = 0; i < numObjects; ++i) {
+            SDL_Rect newRect;
+            bool positionIsSafe;
+            int maxTries = 100;
+
+            do {
+                
+                positionIsSafe = true;
+                newRect = { distribX(gen), distribY(gen), SPRITE_SIZE, SPRITE_SIZE };
+                if (useDataOriented) {
+                    for (const auto& comp : gameData_DO.physics) { 
+                        if (SDL_HasIntersection(&newRect, &comp.rect)) {
+                            positionIsSafe = false;
+                            break;
+                        }
+                    }
+                }
+                else { 
+                    for (const auto& existingObj : objects_OO) {
+                        if (SDL_HasIntersection(&newRect, &existingObj.rect)) {
+                            positionIsSafe = false;
+                            break;
+                        }
+                    }
+                }
+                maxTries--;
+            } while (!positionIsSafe && maxTries > 0);
+
+            if (positionIsSafe) {
+                float angle = distribAngle(gen);
+                SDL_FPoint vel = { OBJECT_SPEED * cos(angle), OBJECT_SPEED * sin(angle) };
+
+                if (useDataOriented) {
+                    SDL_FPoint pos = { (float)newRect.x, (float)newRect.y };
+                    gameData_DO.physics.push_back({ pos, vel, newRect }); // Add the new component
+                    gameData_DO.textures.push_back(spriteTexture);
+                }
+                else {
+                    objects_OO.push_back({ {(float)newRect.x, (float)newRect.y}, vel, newRect, spriteTexture });
+                }
+            }
+        }
+        };
+
+    respawnObjects();
+
+    //Main Loop
+    bool quit = false;
+    SDL_Event e;
+    auto lastTime = std::chrono::high_resolution_clock::now();
+    float fps = 0.0f;
+    Uint32 frameCount = 0;
+    Uint32 startTime = SDL_GetTicks();
+
+    while (!quit) {
+        while (SDL_PollEvent(&e) != 0) {
+            ImGui_ImplSDL2_ProcessEvent(&e);
+            if (e.type == SDL_QUIT) {
+                quit = true;
+            }
+        }
+
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        float deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
+        lastTime = currentTime;
+
+        //FPS Calculation 
+        frameCount++;
+        if (SDL_GetTicks() - startTime > 1000) {
+            fps = frameCount;
+            frameCount = 0;
+            startTime = SDL_GetTicks();
+        }
+
+        //Logic Update
+        if (useDataOriented) {
+            Update_DO(gameData_DO, deltaTime, SCREEN_WIDTH, SCREEN_HEIGHT, spatialHash);
+        }
+        else {
+            Update_OO(objects_OO, deltaTime, SCREEN_WIDTH, SCREEN_HEIGHT, spatialHash);
+        }
+
+        //UI (ImGui)
+        ImGui_ImplSDLRenderer2_NewFrame();
+        ImGui_ImplSDL2_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::Begin("Control Panel");
+        ImGui::Text("Performance:");
+        ImGui::Text("FPS: %.1f", fps);
+        ImGui::Separator();
+        ImGui::Text("Simulation Settings:");
+
+        if (ImGui::Checkbox("Use Data-Oriented", &useDataOriented)) {
+            respawnObjects();
+        }
+
+        if (ImGui::SliderInt("Number of Objects", &numObjects, 1, MAX_OBJECTS)) {
+            respawnObjects();
+        }
+        ImGui::End();
+
+        //Rendering
+        SDL_SetRenderDrawColor(renderer, 20, 20, 40, 255);
+        SDL_RenderClear(renderer);
+
+        if (useDataOriented) {
+            Render_DO(renderer, gameData_DO);
+        }
+        else {
+            Render_OO(renderer, objects_OO);
+        }
+
+        ImGui::Render();
+        ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
+
+        SDL_RenderPresent(renderer);
     }
-    SDL_SetRenderLogicalPresentation(renderer, 640, 480, SDL_LOGICAL_PRESENTATION_LETTERBOX);
 
-    return SDL_APP_CONTINUE;  /* carry on with the program! */
+    //Cleanup 
+    TextureManager::CleanUp();
+    ImGui_ImplSDLRenderer2_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    IMG_Quit();
+    SDL_Quit();
+
+    return 0;
 }
-
-/* This function runs when a new event (mouse input, keypresses, etc) occurs. */
-SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
-{
-    if (event->type == SDL_EVENT_QUIT) {
-        return SDL_APP_SUCCESS;  /* end the program, reporting success to the OS. */
-    }
-    return SDL_APP_CONTINUE;  /* carry on with the program! */
-}
-
-/* This function runs once per frame, and is the heart of the program. */
-SDL_AppResult SDL_AppIterate(void* appstate)
-{
-    const double now = ((double)SDL_GetTicks()) / 1000.0;  /* convert from milliseconds to seconds. */
-    /* choose the color for the frame we will draw. The sine wave trick makes it fade between colors smoothly. */
-    const float red = (float)(0.5 + 0.5 * SDL_sin(now));
-    const float green = (float)(0.5 + 0.5 * SDL_sin(now + SDL_PI_D * 2 / 3));
-    const float blue = (float)(0.5 + 0.5 * SDL_sin(now + SDL_PI_D * 4 / 3));
-    SDL_SetRenderDrawColorFloat(renderer, red, green, blue, SDL_ALPHA_OPAQUE_FLOAT);  /* new color, full alpha. */
-
-    /* clear the window to the draw color. */
-    SDL_RenderClear(renderer);
-
-    /* put the newly-cleared rendering on the screen. */
-    SDL_RenderPresent(renderer);
-
-    return SDL_APP_CONTINUE;  /* carry on with the program! */
-}
-
-/* This function runs once at shutdown. */
-void SDL_AppQuit(void* appstate, SDL_AppResult result)
-{
-    /* SDL will clean up the window/renderer for us. */
-}
-
