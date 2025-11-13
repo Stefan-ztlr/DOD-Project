@@ -18,12 +18,12 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-// --- Configuration ---
+// Configuration
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
 const int MAX_OBJECTS = 100000;
 const int SPRITE_SIZE = 1;
-const int CELL_SIZE = SPRITE_SIZE * 2;
+const int CELL_SIZE = SPRITE_SIZE * 8;
 
 const float OBJECT_SPEED = 200.0f; // Define a constant speed
 
@@ -35,8 +35,7 @@ int main(int argc, char* argv[]) {
     SDL_Window* window = SDL_CreateWindow("DOD Project", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
-    //ImGui Initialization 
-    IMGUI_CHECKVERSION();
+    //ImGui Initialization
     ImGui::CreateContext();
     ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer2_Init(renderer);
@@ -45,7 +44,7 @@ int main(int argc, char* argv[]) {
 
     //Game Variables
     bool useDataOriented = false;
-    int numObjects = 100;
+    int numObjects = 5000;
     std::vector<GameObject_OO> objects_OO;
     GameData_DO gameData_DO;
     SDL_Texture* spriteTexture = TextureManager::LoadTexture("sprite.png", renderer);
@@ -198,4 +197,4 @@ int main(int argc, char* argv[]) {
     SDL_Quit();
 
     return 0;
-}
+};

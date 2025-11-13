@@ -106,13 +106,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Stefan\Documents\ProiectIS\DOD-Project\libs\SDL2-2.32.4\include;C:\Users\Stefan\Documents\ProiectIS\DOD-Project\Game\SDL Game\imgui;C:\Users\Stefan\Documents\ProiectIS\DOD-Project\libs\SDL2_image-2.8.8\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Stefan\Documents\GitHub\DOD-Project\libs\SDL2-2.32.4\include;C:\Users\Stefan\Documents\GitHub\DOD-Project\libs\SDL2_image-2.8.8\include;C:\Users\Stefan\Documents\GitHub\DOD-Project\Game\SDL Game\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\Stefan\Documents\ProiectIS\DOD-Project\libs\SDL2-2.32.4\lib\x64;C:\Users\Stefan\Documents\ProiectIS\DOD-Project\libs\SDL2_image-2.8.8\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\Stefan\Documents\GitHub\DOD-Project\libs\SDL2-2.32.4\lib\x64;C:\Users\Stefan\Documents\GitHub\DOD-Project\libs\SDL2_image-2.8.8\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;SDL2test.lib;SDL2_image.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -124,7 +124,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Stefan\Documents\ProiectIS\DOD-Project\libs\SDL2-2.32.4\include;C:\Users\Stefan\Documents\ProiectIS\DOD-Project\Game\SDL Game\imgui;C:\Users\Stefan\Documents\ProiectIS\DOD-Project\libs\SDL2_image-2.8.8\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Stefan\Documents\GitHub\DOD-Project\libs\SDL2-2.32.4\include;C:\Users\Stefan\Documents\GitHub\DOD-Project\libs\SDL2_image-2.8.8\include;C:\Users\Stefan\Documents\GitHub\DOD-Project\Game\SDL Game\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -132,7 +132,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\Stefan\Documents\ProiectIS\DOD-Project\libs\SDL2-2.32.4\lib\x64;C:\Users\Stefan\Documents\ProiectIS\DOD-Project\libs\SDL2_image-2.8.8\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\Stefan\Documents\GitHub\DOD-Project\libs\SDL2-2.32.4\lib\x64;C:\Users\Stefan\Documents\GitHub\DOD-Project\libs\SDL2_image-2.8.8\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;SDL2test.lib;SDL2_image.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
