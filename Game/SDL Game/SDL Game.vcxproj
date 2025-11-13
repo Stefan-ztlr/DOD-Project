@@ -77,11 +77,17 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)libs\SDL2-2.32.4\include;$(SolutionDir)libs\SDL2_image-2.8.8\include;$(SolutionDir)imgui\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\SDL2-2.32.4\lib\x64;$(SolutionDir)libs\SDL2_image-2.8.8\lib\x64</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -92,13 +98,19 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)libs\SDL2-2.32.4\include;$(SolutionDir)libs\SDL2_image-2.8.8\include;$(SolutionDir)imgui\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\SDL2-2.32.4\lib\x64;$(SolutionDir)libs\SDL2_image-2.8.8\lib\x64</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -106,15 +118,19 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Stefan\Documents\GitHub\DOD-Project\libs\SDL2-2.32.4\include;C:\Users\Stefan\Documents\GitHub\DOD-Project\libs\SDL2_image-2.8.8\include;C:\Users\Stefan\Documents\GitHub\DOD-Project\Game\SDL Game\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)libs\SDL2-2.32.4\include;$(SolutionDir)libs\SDL2_image-2.8.8\include;$(SolutionDir)imgui\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\Stefan\Documents\GitHub\DOD-Project\libs\SDL2-2.32.4\lib\x64;C:\Users\Stefan\Documents\GitHub\DOD-Project\libs\SDL2_image-2.8.8\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\SDL2-2.32.4\lib\x64;$(SolutionDir)libs\SDL2_image-2.8.8\lib\x64</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;SDL2test.lib;SDL2_image.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -124,7 +140,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Stefan\Documents\GitHub\DOD-Project\libs\SDL2-2.32.4\include;C:\Users\Stefan\Documents\GitHub\DOD-Project\libs\SDL2_image-2.8.8\include;C:\Users\Stefan\Documents\GitHub\DOD-Project\Game\SDL Game\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)libs\SDL2-2.32.4\include;$(SolutionDir)libs\SDL2_image-2.8.8\include;$(SolutionDir)imgui\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -132,19 +148,23 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\Stefan\Documents\GitHub\DOD-Project\libs\SDL2-2.32.4\lib\x64;C:\Users\Stefan\Documents\GitHub\DOD-Project\libs\SDL2_image-2.8.8\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\SDL2-2.32.4\lib\x64;$(SolutionDir)libs\SDL2_image-2.8.8\lib\x64</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;SDL2test.lib;SDL2_image.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\imgui\imgui.cpp" />
+    <ClCompile Include="..\imgui\imgui_demo.cpp" />
+    <ClCompile Include="..\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\imgui\imgui_impl_sdl2.cpp" />
+    <ClCompile Include="..\imgui\imgui_impl_sdlrenderer2.cpp" />
+    <ClCompile Include="..\imgui\imgui_tables.cpp" />
+    <ClCompile Include="..\imgui\imgui_widgets.cpp" />
     <ClCompile Include="DataOriented.cpp" />
-    <ClCompile Include="imgui\imgui.cpp" />
-    <ClCompile Include="imgui\imgui_demo.cpp" />
-    <ClCompile Include="imgui\imgui_draw.cpp" />
-    <ClCompile Include="imgui\imgui_impl_sdl2.cpp" />
-    <ClCompile Include="imgui\imgui_impl_sdlrenderer2.cpp" />
-    <ClCompile Include="imgui\imgui_tables.cpp" />
-    <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ObjectOriented.cpp" />
     <ClCompile Include="SpatialHash.cpp" />
