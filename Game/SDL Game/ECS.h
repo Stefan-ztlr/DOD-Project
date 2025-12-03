@@ -6,7 +6,7 @@
 #include "TextureManager.h"
 
 // Define a signature to know which components an entity has
-// 0 = Transform, 1 = RigidBody, 2 = Collider, 3 = Controller, 4 = Stats, 5 = Render
+// 0 = Transform, 1 = RigidBody, 2 = Collider, 3 = Controller, 4 = Health, 5 = Damage, 6 = Render
 const int MAX_COMPONENTS = 32;
 typedef std::bitset<MAX_COMPONENTS> Signature;
 
@@ -17,7 +17,7 @@ public:
     RigidBodyComponent rigidBodies[MAX_ENTITIES];
     ColliderComponent colliders[MAX_ENTITIES];
     PlayerControllerComponent controllers[MAX_ENTITIES];
-     HealthComponent healths[MAX_ENTITIES];     
+    HealthComponent healths[MAX_ENTITIES];     
     DamageComponent damages[MAX_ENTITIES];    
     RenderComponent renderers[MAX_ENTITIES];
 
