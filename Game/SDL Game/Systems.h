@@ -63,28 +63,28 @@ void System_Input(Registry& reg, const Uint8* keyboardState) {
 void System_Physics(Registry& reg, float dt) {
     float gravity = 980.0f;
 
-    for (int i = 0; i < MAX_ENTITIES; ++i) {
-        // Requirement: Active + Transform(0) + RigidBody(1)
-        if (reg.activeEntities[i] && reg.signatures[i].test(0) && reg.signatures[i].test(1)) {
+    for (int i : reg.entities_physics) {
 
-            // Apply Gravity
-            reg.rigidBodies[i].accelerationY = gravity;
+        if (!reg.activeEntities[i]) continue;
 
-            // Apply Acceleration
-            reg.rigidBodies[i].velocityY += reg.rigidBodies[i].accelerationY * dt;
+        // Apply Gravity
+        reg.rigidBodies[i].accelerationY = gravity;
 
-            // Apply Velocity
-            reg.transforms[i].x += reg.rigidBodies[i].velocityX * dt;
-            reg.transforms[i].y += reg.rigidBodies[i].velocityY * dt;
+        // Apply Acceleration
+        reg.rigidBodies[i].velocityY += reg.rigidBodies[i].accelerationY * dt;
 
-            // Update the AABB box for collision detection later
-            if (reg.signatures[i].test(2)) {
-                reg.colliders[i].aabb.x = static_cast<int>(reg.transforms[i].x);
-                reg.colliders[i].aabb.y = static_cast<int>(reg.transforms[i].y);
-                reg.colliders[i].aabb.w = reg.transforms[i].width;
-                reg.colliders[i].aabb.h = reg.transforms[i].height;
-            }
+        // Apply Velocity
+        reg.transforms[i].x += reg.rigidBodies[i].velocityX * dt;
+        reg.transforms[i].y += reg.rigidBodies[i].velocityY * dt;
+
+        // Update the AABB box for collision detection later
+        if (reg.signatures[i].test(2)) {
+            reg.colliders[i].aabb.x = static_cast<int>(reg.transforms[i].x);
+            reg.colliders[i].aabb.y = static_cast<int>(reg.transforms[i].y);    
+            reg.colliders[i].aabb.w = reg.transforms[i].width;
+            reg.colliders[i].aabb.h = reg.transforms[i].height;
         }
+        
     }
 }
 
@@ -92,21 +92,18 @@ void System_Physics(Registry& reg, float dt) {
 // Probably should split the logic between collision and enemy damage idk
 void System_Collision(Registry& reg) {
     // Requirement: Active + RigidBody(1) + Collider(2)
-    for (int i = 0; i < MAX_ENTITIES; ++i) {
-        if (!reg.activeEntities[i] || !reg.signatures[i].test(1) || !reg.signatures[i].test(2)) {
-            continue;
-        }
+    for (int i : reg.entities_physics) {
+
+        if (!reg.signatures[i].test(2) && !reg.activeEntities[i]) continue;
 
         // Reset grounded state for this entity
-        reg.rigidBodies[i].isGrounded = false;
+        //reg.rigidBodies[i].isGrounded = false;
         SDL_Rect rectA = reg.colliders[i].aabb;
 
         // Requirement: Active + Collider(2)
-        for (int j = 0; j < MAX_ENTITIES; ++j) {
-            // Skip self, skip inactive, skip non-colliders
-            if (i == j || !reg.activeEntities[j] || !reg.signatures[j].test(2)) {
-                continue;
-            }
+        for (int j : reg.entities_collidable) {
+            // Skip self
+            if (i == j) continue;
 
             SDL_Rect rectB = reg.colliders[j].aabb;
 
@@ -176,37 +173,36 @@ void System_Collision(Registry& reg) {
 
 // Render System 
 void System_Render(Registry& reg, SDL_Renderer* renderer) {
-    for (int i = 0; i < MAX_ENTITIES; ++i) {
-        // Check Bit 0 (Transform) AND Bit 6 (Render)
-        if (reg.activeEntities[i] && reg.signatures[i].test(0) && reg.signatures[i].test(6)) {
-            if (!reg.renderers[i].isVisible) continue;
+    for (int i : reg.entities_renderable) {
+        
+        if (!reg.renderers[i].isVisible) continue;
 
-            // Invulnerability Blink Logic 
-            if (reg.signatures[i].test(4) && reg.healths[i].invulnTimer > 0.0f) {
-                if (static_cast<int>(reg.healths[i].invulnTimer * 15.0f) % 2 == 0) continue;
-            }
-
-            // Destination Rectangle 
-            SDL_Rect dstRect;
-            dstRect.x = static_cast<int>(reg.transforms[i].x);
-            dstRect.y = static_cast<int>(reg.transforms[i].y);
-            dstRect.w = reg.transforms[i].width;
-            dstRect.h = reg.transforms[i].height;
-
-            // Render Logic
-            if (reg.renderers[i].hasTexture) {
-                // Check flip flag
-                SDL_RendererFlip flip = reg.renderers[i].flipX ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
-
-                // RenderCopyEx allows rotation (0.0) and flipping
-                SDL_RenderCopyEx(renderer, reg.renderers[i].texture, &reg.renderers[i].srcRect, &dstRect, 0.0, NULL, flip);
-            }
-            else {
-                // Fallback
-                SDL_SetRenderDrawColor(renderer, reg.renderers[i].r, reg.renderers[i].g, reg.renderers[i].b, reg.renderers[i].a);
-                SDL_RenderFillRect(renderer, &dstRect);
-            }
+        // Invulnerability Blink Logic 
+        if (reg.signatures[i].test(4) && reg.healths[i].invulnTimer > 0.0f) {
+            if (static_cast<int>(reg.healths[i].invulnTimer * 15.0f) % 2 == 0) continue;
         }
+
+        // Destination Rectangle 
+        SDL_Rect dstRect;
+        dstRect.x = static_cast<int>(reg.transforms[i].x);
+        dstRect.y = static_cast<int>(reg.transforms[i].y);
+        dstRect.w = reg.transforms[i].width;
+        dstRect.h = reg.transforms[i].height;
+
+        // Render Logic
+        if (reg.renderers[i].hasTexture) {
+            // Check flip flag
+            SDL_RendererFlip flip = reg.renderers[i].flipX ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+
+            // RenderCopyEx allows rotation (0.0) and flipping
+            SDL_RenderCopyEx(renderer, reg.renderers[i].texture, &reg.renderers[i].srcRect, &dstRect, 0.0, NULL, flip);
+        }
+        else {
+            // Fallback
+            SDL_SetRenderDrawColor(renderer, reg.renderers[i].r, reg.renderers[i].g, reg.renderers[i].b, reg.renderers[i].a);
+            SDL_RenderFillRect(renderer, &dstRect);
+        }
+        
     }
 }
 

@@ -51,6 +51,7 @@ void SetupLevel(SDL_Renderer* renderer) {
         int e = gameRegistry.CreateEntity();
         gameRegistry.AddTransform(e, rand() % 1280, rand() % 720, 4, 4);
         gameRegistry.AddRender(e, 50, 50, 200); // Blue particles
+        //gameRegistry.AddSprite(e, "sprite.png", renderer);
     }*/
 }
 

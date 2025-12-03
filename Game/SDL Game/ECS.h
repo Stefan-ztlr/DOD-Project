@@ -21,6 +21,12 @@ public:
     DamageComponent damages[MAX_ENTITIES];    
     RenderComponent renderers[MAX_ENTITIES];
 
+    // Lists used for iteration by systems
+    std::vector<int> entities_renderable;
+    std::vector<int> entities_physics;
+    std::vector<int> entities_collidable;
+    std::vector<int> entities_with_health;
+
     // Management data
     Signature signatures[MAX_ENTITIES]; // Keeps track of which components are active for an entity
     bool activeEntities[MAX_ENTITIES];  // Is this ID currently in use?
@@ -33,6 +39,11 @@ public:
             activeEntities[i] = false;
             signatures[i].reset();
         }
+
+        entities_physics.reserve(MAX_ENTITIES);
+        entities_renderable.reserve(MAX_ENTITIES);
+        entities_collidable.reserve(MAX_ENTITIES);
+        entities_with_health.reserve(MAX_ENTITIES);
     }
 
     int CreateEntity() {
@@ -48,10 +59,30 @@ public:
     }
 
     void DestroyEntity(int entity) {
-        if (entity >= 0 && entity < MAX_ENTITIES) {
+        if (activeEntities[entity]) {
             activeEntities[entity] = false;
+
+            // Clean up from lists based on what it had
+            if (signatures[entity].test(1)) RemoveFromList(entities_physics, entity);
+            if (signatures[entity].test(2)) RemoveFromList(entities_collidable, entity);
+            if (signatures[entity].test(4)) RemoveFromList(entities_with_health, entity);
+            if (signatures[entity].test(6)) RemoveFromList(entities_renderable, entity);
+
             signatures[entity].reset();
             entityCount--;
+        }
+    }
+
+
+    void RemoveFromList(std::vector<int>& list, int entityID) {
+        for (int i = 0; i < list.size(); ++i) {
+            if (list[i] == entityID) {
+                // Swap with the last element
+                list[i] = list.back();
+                // Remove the last element
+                list.pop_back();
+                return;
+            }
         }
     }
 
@@ -64,6 +95,7 @@ public:
     void AddRigidBody(int entity) {
         rigidBodies[entity] = { 0.0f, 0.0f, 0.0f, 0.0f, false };
         signatures[entity].set(1);
+        entities_physics.push_back(entity); // <--- Cache it!
     }
 
     void AddCollider(int entity, ColliderType type) {
@@ -83,6 +115,7 @@ public:
         }
 
         signatures[entity].set(2);
+        entities_collidable.push_back(entity);
     }
 
     void AddController(int entity) {
@@ -93,6 +126,7 @@ public:
     void AddHealth(int entity, int hp) {
         healths[entity] = { hp, hp, 0.0f, false };
         signatures[entity].set(4);
+        entities_with_health.push_back(entity);
     }
 
     void AddDamage(int entity, int amount) {
@@ -104,6 +138,7 @@ public:
         // Texture=nullptr, src={0,0,0,0}, hasTexture=false, flipX=false
         renderers[entity] = { nullptr, {0,0,0,0}, false, false, r, g, b, 255, true };
         signatures[entity].set(6);
+        entities_renderable.push_back(entity);
     }
 
     void AddSprite(int entity, const std::string& path, SDL_Renderer* renderer) {
@@ -118,5 +153,6 @@ public:
         // hasTexture=true, flipX=false, Color defaults to White
         renderers[entity] = { tex, src, true, false, 255, 255, 255, 255, true };
         signatures[entity].set(6);
+        entities_renderable.push_back(entity);
     }
 };

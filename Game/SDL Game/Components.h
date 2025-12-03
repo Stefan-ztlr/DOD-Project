@@ -1,7 +1,7 @@
 #pragma once
 #include <SDL.h>
 
-const int MAX_ENTITIES = 50000;
+const int MAX_ENTITIES = 100000;
 
 struct TransformComponent {
     float x, y;
