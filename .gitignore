@@ -22,3 +22,26 @@ Game/SDL Game/x64/Debug/imgui_draw.obj
 Game/SDL Game/x64/Debug/imgui_demo.obj
 Game/SDL Game/x64/Debug/imgui.obj
 Game/SDL Game/x64/Debug/Components.obj
+Game/SDL Game/x64/Debug/Components.obj
+Game/SDL Game/x64/Debug/imgui.obj
+Game/SDL Game/x64/Debug/imgui_demo.obj
+Game/SDL Game/x64/Debug/imgui_draw.obj
+Game/SDL Game/x64/Debug/imgui_impl_sdl2.obj
+Game/SDL Game/x64/Debug/imgui_impl_sdlrenderer2.obj
+Game/SDL Game/x64/Debug/imgui_tables.obj
+Game/SDL Game/x64/Debug/imgui_widgets.obj
+Game/SDL Game/x64/Debug/main.obj
+Game/SDL Game/x64/Debug/SDL Game.ilk
+Game/SDL Game/x64/Debug/SDL Game.log
+Game/SDL Game/x64/Debug/SDL Game.tlog/CL.command.1.tlog
+Game/SDL Game/x64/Debug/SDL Game.tlog/Cl.items.tlog
+Game/SDL Game/x64/Debug/SDL Game.tlog/CL.read.1.tlog
+Game/SDL Game/x64/Debug/SDL Game.tlog/CL.write.1.tlog
+Game/SDL Game/x64/Debug/SDL Game.tlog/link.command.1.tlog
+Game/SDL Game/x64/Debug/SDL Game.tlog/link.read.1.tlog
+Game/SDL Game/x64/Debug/SDL Game.tlog/link.write.1.tlog
+Game/SDL Game/x64/Debug/TextureManager.obj
+Game/SDL Game/x64/Debug/vc143.idb
+Game/SDL Game/x64/Debug/vc143.pdb
+Game/x64/Debug/SDL Game.exe
+Game/x64/Debug/SDL Game.pdb
