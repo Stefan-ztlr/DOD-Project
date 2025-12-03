@@ -1,185 +1,208 @@
 #include <iostream>
-#include <ctime>
-#include <cmath> 
-#include <vector>
-#include <random>
 #include <chrono>
 #include <SDL.h>
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
 
-#include "TextureManager.h"
-#include "ObjectOriented.h"
-#include "DataOriented.h"
-#include "SpatialHash.h"
+#include "ECS.h"
+#include "Systems.h"
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
-// --- Configuration ---
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
-const int MAX_OBJECTS = 100000;
-const int SPRITE_SIZE = 1;
-const int CELL_SIZE = SPRITE_SIZE * 2;
 
-const float OBJECT_SPEED = 200.0f; // Define a constant speed
+// Engine
+Registry gameRegistry;
+
+void SetupLevel(SDL_Renderer* renderer) {
+    // Create Player
+    int player = gameRegistry.CreateEntity();
+    gameRegistry.AddTransform(player, 100, 100, 32, 32);
+    gameRegistry.AddRigidBody(player);
+    gameRegistry.AddCollider(player, ColliderType::PLAYER);
+    gameRegistry.AddController(player);
+    gameRegistry.AddRender(player, 0, 255, 0);
+    gameRegistry.AddHealth(player, 100);
+    gameRegistry.AddSprite(player, "sprite.png", renderer);
+
+    // Create Ground 
+    int ground = gameRegistry.CreateEntity();
+    gameRegistry.AddTransform(ground, 0, 600, 1280, 50);
+    gameRegistry.AddCollider(ground, ColliderType::PLATFORM);
+    gameRegistry.AddRender(ground, 100, 100, 100); // Gray
+
+    // Create a Floating Platform
+    int platform = gameRegistry.CreateEntity();
+    gameRegistry.AddTransform(platform, 400, 450, 200, 30);
+    gameRegistry.AddCollider(platform, ColliderType::PLATFORM);
+    gameRegistry.AddRender(platform, 150, 150, 150);
+
+    // Create a Monster
+    int monster = gameRegistry.CreateEntity();
+    gameRegistry.AddTransform(monster, 450, 100, 40, 40);
+    gameRegistry.AddRigidBody(monster);
+    gameRegistry.AddCollider(monster, ColliderType::ENEMY);
+    gameRegistry.AddRender(monster, 255, 0, 0); // Red
+    gameRegistry.AddHealth(monster, 50);  // Can die
+    gameRegistry.AddDamage(monster, 10);  // Can hurt
+    gameRegistry.AddSprite(monster, "sprite.png", renderer);
+
+    /*for (int i = 0; i < 100000; i++) {
+        int e = gameRegistry.CreateEntity();
+        gameRegistry.AddTransform(e, rand() % 1280, rand() % 720, 4, 4);
+        gameRegistry.AddRender(e, 50, 50, 200); // Blue particles
+    }*/
+}
 
 int main(int argc, char* argv[]) {
-    //SDL Initialization
+    // SDL Init 
     SDL_Init(SDL_INIT_VIDEO);
-    IMG_Init(IMG_INIT_PNG);
-
-    SDL_Window* window = SDL_CreateWindow("DOD Project", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    SDL_Window* window = SDL_CreateWindow("ECS Platformer", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
-    //ImGui Initialization 
+    // ImGui Init 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer2_Init(renderer);
 
-    SpatialHash spatialHash(SCREEN_WIDTH, SCREEN_HEIGHT, CELL_SIZE);
+    SetupLevel(renderer);
 
-    //Game Variables
-    bool useDataOriented = false;
-    int numObjects = 100;
-    std::vector<GameObject_OO> objects_OO;
-    GameData_DO gameData_DO;
-    SDL_Texture* spriteTexture = TextureManager::LoadTexture("sprite.png", renderer);
-
-    if (!spriteTexture) {
-        return 1;
-    }
-
-    auto respawnObjects = [&]() {
-        objects_OO.clear();
-
-        gameData_DO.physics.clear(); 
-        gameData_DO.textures.clear();
-
-
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> distribX(0, SCREEN_WIDTH - SPRITE_SIZE);
-        std::uniform_int_distribution<> distribY(0, SCREEN_HEIGHT - SPRITE_SIZE);
-
-        std::uniform_real_distribution<float> distribAngle(0.0f, 2.0f * static_cast<float>(M_PI));
-
-        for (int i = 0; i < numObjects; ++i) {
-            SDL_Rect newRect;
-            bool positionIsSafe;
-            int maxTries = 100;
-
-            do {
-                
-                positionIsSafe = true;
-                newRect = { distribX(gen), distribY(gen), SPRITE_SIZE, SPRITE_SIZE };
-                if (useDataOriented) {
-                    for (const auto& comp : gameData_DO.physics) { 
-                        if (SDL_HasIntersection(&newRect, &comp.rect)) {
-                            positionIsSafe = false;
-                            break;
-                        }
-                    }
-                }
-                else { 
-                    for (const auto& existingObj : objects_OO) {
-                        if (SDL_HasIntersection(&newRect, &existingObj.rect)) {
-                            positionIsSafe = false;
-                            break;
-                        }
-                    }
-                }
-                maxTries--;
-            } while (!positionIsSafe && maxTries > 0);
-
-            if (positionIsSafe) {
-                float angle = distribAngle(gen);
-                SDL_FPoint vel = { OBJECT_SPEED * cos(angle), OBJECT_SPEED * sin(angle) };
-
-                if (useDataOriented) {
-                    SDL_FPoint pos = { (float)newRect.x, (float)newRect.y };
-                    gameData_DO.physics.push_back({ pos, vel, newRect }); // Add the new component
-                    gameData_DO.textures.push_back(spriteTexture);
-                }
-                else {
-                    objects_OO.push_back({ {(float)newRect.x, (float)newRect.y}, vel, newRect, spriteTexture });
-                }
-            }
-        }
-        };
-
-    respawnObjects();
-
-    //Main Loop
     bool quit = false;
     SDL_Event e;
     auto lastTime = std::chrono::high_resolution_clock::now();
-    float fps = 0.0f;
-    Uint32 frameCount = 0;
-    Uint32 startTime = SDL_GetTicks();
 
+    //  Game Loop 
     while (!quit) {
+        // Input
         while (SDL_PollEvent(&e) != 0) {
             ImGui_ImplSDL2_ProcessEvent(&e);
-            if (e.type == SDL_QUIT) {
-                quit = true;
-            }
+            if (e.type == SDL_QUIT) quit = true;
         }
 
+        const Uint8* keyboardState = SDL_GetKeyboardState(NULL);
+
+        // Time
         auto currentTime = std::chrono::high_resolution_clock::now();
         float deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
         lastTime = currentTime;
 
-        //FPS Calculation 
-        frameCount++;
-        if (SDL_GetTicks() - startTime > 1000) {
-            fps = frameCount;
-            frameCount = 0;
-            startTime = SDL_GetTicks();
-        }
+        // Systems Update 
+        System_Input(gameRegistry, keyboardState);
+        System_Health(gameRegistry, deltaTime);
+        System_Physics(gameRegistry, deltaTime);
+        System_Collision(gameRegistry);
 
-        //Logic Update
-        if (useDataOriented) {
-            Update_DO(gameData_DO, deltaTime, SCREEN_WIDTH, SCREEN_HEIGHT, spatialHash);
-        }
-        else {
-            Update_OO(objects_OO, deltaTime, SCREEN_WIDTH, SCREEN_HEIGHT, spatialHash);
-        }
+        // Render
+        SDL_SetRenderDrawColor(renderer, 20, 20, 40, 255); // Background
+        SDL_RenderClear(renderer);
 
-        //UI (ImGui)
+        // Draw Entities
+        System_Render(gameRegistry, renderer);
+
+        // Draw UI
         ImGui_ImplSDLRenderer2_NewFrame();
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::Begin("Control Panel");
-        ImGui::Text("Performance:");
-        ImGui::Text("FPS: %.1f", fps);
-        ImGui::Separator();
-        ImGui::Text("Simulation Settings:");
+        ImGui::Begin("ECS Engine Debugger");
 
-        if (ImGui::Checkbox("Use Data-Oriented", &useDataOriented)) {
-            respawnObjects();
+        // Performance Section
+        if (ImGui::CollapsingHeader("Performance", ImGuiTreeNodeFlags_DefaultOpen)) {
+            // FPS and Frame Time
+            ImGui::Text("FPS: %.1f", 1.0f / deltaTime);
+            ImGui::Text("Frame Time: %.3f ms", deltaTime * 1000.0f);
+
+            ImGui::Separator();
+
+            // Entity Count 
+            float usage = (float)gameRegistry.entityCount / MAX_ENTITIES;
+            char buf[32];
+            sprintf_s(buf, "%d/%d Entities", gameRegistry.entityCount, MAX_ENTITIES);
+            ImGui::ProgressBar(usage, ImVec2(0.0f, 0.0f), buf);
+
+            // Memory Usage Calculation
+            double memoryMB = sizeof(Registry) / (1024.0 * 1024.0);
+            ImGui::Text("ECS Memory: %.2f MB", memoryMB);
         }
 
-        if (ImGui::SliderInt("Number of Objects", &numObjects, 1, MAX_OBJECTS)) {
-            respawnObjects();
+        // Player Data
+        if (ImGui::CollapsingHeader("Player Inspector", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+            // Find player ID
+            int playerID = -1;
+            for (int i = 0; i < MAX_ENTITIES; ++i) {
+                if (gameRegistry.activeEntities[i] && gameRegistry.signatures[i].test(3)) {
+                    playerID = i;
+                    break;
+                }
+            }
+
+            if (playerID != -1) {
+                ImGui::TextColored(ImVec4(0, 1, 0, 1), "Player Found (ID: %d)", playerID);
+
+                // Editable Position
+                if (gameRegistry.signatures[playerID].test(0)) {
+                    ImGui::SeparatorText("Transform");
+                    float pos[2] = { gameRegistry.transforms[playerID].x, gameRegistry.transforms[playerID].y };
+                    if (ImGui::DragFloat2("Position (X, Y)", pos)) {
+                        gameRegistry.transforms[playerID].x = pos[0];
+                        gameRegistry.transforms[playerID].y = pos[1];
+                        // Update collider immediately if moved manually
+                        if (gameRegistry.signatures[playerID].test(2)) {
+                            gameRegistry.colliders[playerID].aabb.x = (int)pos[0];
+                            gameRegistry.colliders[playerID].aabb.y = (int)pos[1];
+                        }
+                    }
+                }
+
+                // Physics read-only
+                if (gameRegistry.signatures[playerID].test(1)) {
+                    ImGui::SeparatorText("Physics");
+                    ImGui::Text("Velocity: { %.2f, %.2f }",
+                        gameRegistry.rigidBodies[playerID].velocityX,
+                        gameRegistry.rigidBodies[playerID].velocityY
+                    );
+
+                    bool grounded = gameRegistry.rigidBodies[playerID].isGrounded;
+                    ImGui::Checkbox("Is Grounded", &grounded); // Visualization only
+
+                    if (ImGui::Button("Stop Velocity")) {
+                        gameRegistry.rigidBodies[playerID].velocityX = 0;
+                        gameRegistry.rigidBodies[playerID].velocityY = 0;
+                    }
+                }
+
+                // Jump debugging 
+                if (gameRegistry.signatures[playerID].test(3)) {
+                    ImGui::SeparatorText("Controller");
+                    ImGui::Text("Jumps: %d / %d",
+                        gameRegistry.controllers[playerID].currentJumps,
+                        gameRegistry.controllers[playerID].maxJumps
+                    );
+                }
+
+                // Stats editable
+                if (gameRegistry.signatures[playerID].test(4)) { // Check Bit 4
+                    ImGui::SeparatorText("Health");
+                    int hp = gameRegistry.healths[playerID].current;
+                    if (ImGui::SliderInt("HP", &hp, 0, gameRegistry.healths[playerID].max)) {
+                        gameRegistry.healths[playerID].current = hp;
+                    }
+                }
+
+                // Damage 
+                if (gameRegistry.signatures[playerID].test(5)) {
+                    
+                }
+
+            }
+            else {
+                ImGui::TextColored(ImVec4(1, 0, 0, 1), "Player Entity Not Found!");
+            }
         }
+
         ImGui::End();
-
-        //Rendering
-        SDL_SetRenderDrawColor(renderer, 20, 20, 40, 255);
-        SDL_RenderClear(renderer);
-
-        if (useDataOriented) {
-            Render_DO(renderer, gameData_DO);
-        }
-        else {
-            Render_OO(renderer, objects_OO);
-        }
 
         ImGui::Render();
         ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
@@ -187,14 +210,12 @@ int main(int argc, char* argv[]) {
         SDL_RenderPresent(renderer);
     }
 
-    //Cleanup 
-    TextureManager::CleanUp();
+    // Cleanup 
     ImGui_ImplSDLRenderer2_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
-    IMG_Quit();
     SDL_Quit();
 
     return 0;
