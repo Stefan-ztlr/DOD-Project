@@ -20,6 +20,10 @@ public:
     HealthComponent healths[MAX_ENTITIES];     
     DamageComponent damages[MAX_ENTITIES];    
     RenderComponent renderers[MAX_ENTITIES];
+    PowerupComponent powerups[MAX_ENTITIES];
+    PaddleZoneComponent paddleZones[MAX_ENTITIES];
+
+    std::queue<int> freeIds;
 
     // Lists used for iteration by systems
     std::vector<int> entities_renderable;
@@ -38,6 +42,8 @@ public:
         for (int i = 0; i < MAX_ENTITIES; ++i) {
             activeEntities[i] = false;
             signatures[i].reset();
+
+            freeIds.push(i);
         }
 
         entities_physics.reserve(MAX_ENTITIES);
@@ -47,30 +53,43 @@ public:
     }
 
     int CreateEntity() {
-        for (int i = 0; i < MAX_ENTITIES; ++i) {
-            if (!activeEntities[i]) {
-                activeEntities[i] = true;
-                signatures[i].reset(); // Clean old components
-                entityCount++;
-                return i;
-            }
+        // NEW O(1) LOGIC
+        if (freeIds.empty()) {
+            return -1; // No space left
         }
-        return -1; // No space left
+
+        int id = freeIds.front(); // Grab the next available ID
+        freeIds.pop();            // Remove it from the pile
+
+        activeEntities[id] = true;
+        signatures[id].reset();
+        entityCount++;
+        return id;
     }
 
     void DestroyEntity(int entity) {
         if (activeEntities[entity]) {
             activeEntities[entity] = false;
-
-            // Clean up from lists based on what it had
-            if (signatures[entity].test(1)) RemoveFromList(entities_physics, entity);
-            if (signatures[entity].test(2)) RemoveFromList(entities_collidable, entity);
-            if (signatures[entity].test(4)) RemoveFromList(entities_with_health, entity);
-            if (signatures[entity].test(6)) RemoveFromList(entities_renderable, entity);
-
             signatures[entity].reset();
             entityCount--;
+
+            freeIds.push(entity);
         }
+    }
+
+    void RefreshLists() {
+        // Helper lambda to remove inactive IDs from a vector
+        auto cleanVector = [&](std::vector<int>& list) {
+            // This is the "Erase-Remove Idiom". It packs the vector in one pass. Very fast.
+            list.erase(std::remove_if(list.begin(), list.end(),
+                [&](int id) { return !activeEntities[id]; }),
+                list.end());
+            };
+
+        cleanVector(entities_physics);
+        cleanVector(entities_collidable);
+        cleanVector(entities_renderable);
+        cleanVector(entities_with_health);
     }
 
 
@@ -137,22 +156,37 @@ public:
     void AddRender(int entity, Uint8 r, Uint8 g, Uint8 b) {
         // Texture=nullptr, src={0,0,0,0}, hasTexture=false, flipX=false
         renderers[entity] = { nullptr, {0,0,0,0}, false, false, r, g, b, 255, true };
-        signatures[entity].set(6);
-        entities_renderable.push_back(entity);
+
+        // ONLY push to list if it wasn't already a renderable entity
+        if (!signatures[entity].test(6)) {
+            entities_renderable.push_back(entity);
+            signatures[entity].set(6);
+        }
     }
 
     void AddSprite(int entity, const std::string& path, SDL_Renderer* renderer) {
         //  Load Texture via Manager 
         SDL_Texture* tex = TextureManager::LoadTexture(path, renderer);
-
-        // Get Width/Height of the image automatically
         int w, h;
         SDL_QueryTexture(tex, NULL, NULL, &w, &h);
-        SDL_Rect src = { 0, 0, w, h }; // Use the full image by default
+        SDL_Rect src = { 0, 0, w, h };
 
-        // hasTexture=true, flipX=false, Color defaults to White
         renderers[entity] = { tex, src, true, false, 255, 255, 255, 255, true };
-        signatures[entity].set(6);
-        entities_renderable.push_back(entity);
+
+        // ONLY push to list if it wasn't already a renderable entity
+        if (!signatures[entity].test(6)) {
+            entities_renderable.push_back(entity);
+            signatures[entity].set(6);
+        }
+    }
+
+    void AddPowerup(int entity, int type) {
+        powerups[entity] = { type };
+        signatures[entity].set(7);
+    }
+
+    void AddPaddleZone(int entity, float minX, float maxX, float minY, float maxY) {
+        paddleZones[entity] = { minX, maxX, minY, maxY };
+        signatures[entity].set(8);
     }
 };

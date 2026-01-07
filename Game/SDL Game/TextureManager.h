@@ -10,5 +10,6 @@ public:
     static void CleanUp();
 
 private:
+    // simple cache to prevent loading the same image from disk multiple times
     static std::unordered_map<std::string, SDL_Texture*> textures;
 };
