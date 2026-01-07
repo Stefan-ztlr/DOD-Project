@@ -2,7 +2,7 @@
 
 # Breakout Game
 
-A breakout clone that implements a multi threaded spatial grid and an ECS system to try and simulate a high number of entities in this case balls.
+A breakout clone that implements a multi threaded spatial grid and an ECS system to try and simulate a high number of entities, in this case balls.
 
 # Game Mechanics
 - destroying a brick can cause a powerup to drop, once picked up it doubles the amount of balls on the screen
