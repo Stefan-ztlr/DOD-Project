@@ -133,6 +133,7 @@ void GenerateLevel(SDL_Renderer* renderer, int levelIndex) {
         gameRegistry.AddRigidBody(ball);
         gameRegistry.AddCollider(ball, ColliderType::BALL);
         gameRegistry.AddRender(ball, 255, 255, 255);
+        gameRegistry.AddSprite(ball, "ball.png", renderer);
 
         float angle = ((rand() % 100) / 100.0f) * 0.5f - 0.25f;
         gameRegistry.rigidBodies[ball].velocityX = std::sin(angle) * currentBallSpeed;
@@ -216,7 +217,7 @@ int main(int argc, char* argv[]) {
         System_Physics(gameRegistry, deltaTime);
 
         // main collision logic with multithreading
-        System_Collision_Threaded(gameRegistry, currentBallSize, currentBallSpeed, SCREEN_WIDTH, SCREEN_HEIGHT);
+        System_Collision_Threaded(gameRegistry, currentBallSize, currentBallSpeed, SCREEN_WIDTH, SCREEN_HEIGHT, renderer);
 
         System_Bounds(gameRegistry, SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -225,10 +226,7 @@ int main(int argc, char* argv[]) {
 
         System_Render(gameRegistry, renderer);
 
-        // fps smoothing for display
         float instantFPS = 1.0f / deltaTime;
-        static float smoothFPS = 0.0f;
-        smoothFPS = (smoothFPS * 0.9f) + (instantFPS * 0.1f);
 
         ImGui_ImplSDLRenderer2_NewFrame();
         ImGui_ImplSDL2_NewFrame();
@@ -237,7 +235,7 @@ int main(int argc, char* argv[]) {
         ImGui::Begin("ECS Engine Debugger");
 
         if (ImGui::CollapsingHeader("Performance", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::Text("FPS: %.1f", smoothFPS);
+            ImGui::Text("FPS: %.1f", instantFPS);
             ImGui::Text("Frame Time: %.3f ms", deltaTime * 1000.0f);
 
             ImGui::Separator();

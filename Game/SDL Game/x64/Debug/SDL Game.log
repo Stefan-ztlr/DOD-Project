@@ -1,14 +1,2 @@
 ﻿  Components.h
-  main.cpp
-C:\Users\Stefan\Documents\ProiectIS\DOD-Project\Game\SDL Game\SpatialHash.h(19,25): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-  (compiling source file 'main.cpp')
-  
-C:\Users\Stefan\Documents\ProiectIS\DOD-Project\Game\SDL Game\SpatialHash.h(20,25): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-  (compiling source file 'main.cpp')
-  
-C:\Users\Stefan\Documents\ProiectIS\DOD-Project\Game\SDL Game\Systems.h(231,36): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
-  (compiling source file 'main.cpp')
-  
-C:\Users\Stefan\Documents\ProiectIS\DOD-Project\Game\SDL Game\main.cpp(92,55): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-  Generating Code...
   SDL Game.vcxproj -> C:\Users\Stefan\Documents\ProiectIS\DOD-Project\Game\x64\Debug\SDL Game.exe

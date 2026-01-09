@@ -59,11 +59,9 @@ void ProcessCollisionChunk(
 
             SDL_Rect rectB = reg->colliders[j].aabb;
 
-            // skip ball vs ball collisions to simulate fluid movement and save massive performance
+           
             ColliderType typeB = reg->colliders[j].type;
-            if (typeA == ColliderType::BALL && typeB == ColliderType::BALL) {
-                continue;
-            }
+           
 
             if (SDL_HasIntersection(&rectA, &rectB)) {
                 checks++;
@@ -136,7 +134,7 @@ void ProcessCollisionChunk(
 
 SpatialHash* globalSpatialHash = nullptr;
 
-void System_Collision_Threaded(Registry& reg, float currentBallSize, float currentBallSpeed, int screenWidth, int screenHeight) {
+void System_Collision_Threaded(Registry& reg, float currentBallSize, float currentBallSpeed, int screenWidth, int screenHeight, SDL_Renderer* renderer) {
 
     if (globalSpatialHash == nullptr) {
         // 16 is a good cell size for high density
@@ -175,7 +173,7 @@ void System_Collision_Threaded(Registry& reg, float currentBallSize, float curre
                     reg.AddRigidBody(newBall);
                     reg.AddCollider(newBall, ColliderType::BALL);
                     reg.AddRender(newBall, 255, 255, 0);
-
+                    reg.AddSprite(newBall, "ball.png", renderer);
                     float dirX = ((rand() % 100) - 50) / 60.0f;
                     float dirY = -1.0f;
                     float length = std::sqrt(dirX * dirX + dirY * dirY);
@@ -242,6 +240,7 @@ void System_Collision_Threaded(Registry& reg, float currentBallSize, float curre
                     reg.AddRigidBody(newBall);
                     reg.AddCollider(newBall, ColliderType::BALL);
                     reg.AddRender(newBall, 255, 255, 0);
+                    reg.AddSprite(newBall, "ball.png", renderer);
 
                     float dirX = ((rand() % 100) - 50) / 60.0f;
                     float dirY = -1.0f;

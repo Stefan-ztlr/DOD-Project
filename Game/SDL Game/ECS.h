@@ -53,7 +53,6 @@ public:
     }
 
     int CreateEntity() {
-        // NEW O(1) LOGIC
         if (freeIds.empty()) {
             return -1; // No space left
         }
